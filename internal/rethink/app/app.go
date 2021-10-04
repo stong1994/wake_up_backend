@@ -11,9 +11,17 @@ type Application struct {
 }
 
 type Commands struct {
-	AddReport command.AddReportHandler
+	AddReport      command.AddReportHandler
+	AddReportGroup command.AddReportGroupHandler
 }
 
 type Queries struct {
-	ReportAllTypeList     query.ReportAllTypeListHandler
+	ReportAllTypeList query.ReportAllGroupListHandler
+}
+
+func NewApplication(commands Commands, queries Queries) Application {
+	return Application{
+		Commands: commands,
+		Queries:  queries,
+	}
 }

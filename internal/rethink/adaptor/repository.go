@@ -21,14 +21,14 @@ func (r ReportModel) TableName() string {
 	return "report"
 }
 
-type GroupModel struct {
+type ReportGroupModel struct {
 	ID         string
 	UserID     string
 	Name       string
 	CreateTime time.Time
 }
 
-func (g GroupModel) TableName() string {
+func (g ReportGroupModel) TableName() string {
 	return "report_group"
 }
 
@@ -50,8 +50,17 @@ func (r ReportRepository) AddReport(ctx context.Context, report domain.Report) e
 	}).Error
 }
 
+func (r ReportRepository) AddReportGroup(ctx context.Context, reportGroup domain.ReportGroup) error {
+	return r.client.Create(&ReportGroupModel{
+		ID:         reportGroup.ID(),
+		UserID:     reportGroup.UserID(),
+		CreateTime: reportGroup.CreateTime(),
+		Name:       reportGroup.Name(),
+	}).Error
+}
+
 type allTypeListReceiver struct {
-	ID              string    `gorm:"id"`
+	ID              string    `gorm:"column:id"`
 	GroupID         string    `gorm:"column:group_id"`
 	UserID          string    `gorm:"column:user_id"`
 	Content         string    `gorm:"column:content"`
@@ -104,11 +113,11 @@ ORDER BY
 	}()
 	var list []allTypeListReceiver
 	for rawData.Next() {
-		var r allTypeListReceiver
-		if err = rawData.Scan(&r); err != nil {
+		var rec allTypeListReceiver
+		if err = r.client.ScanRows(rawData, &rec); err != nil {
 			return query.RespReportAllGroupList{}, err
 		}
-		list = append(list, r)
+		list = append(list, rec)
 	}
 	return r.allTypeListToQuery(count, list), nil
 }
@@ -153,5 +162,17 @@ func (r ReportRepository) allTypeListToQuery(count int64, data []allTypeListRece
 
 func (r ReportRepository) getUserAllReportCount(ctx context.Context, userID string) (count int64, err error) {
 	err = r.client.Model(ReportModel{}).Where("user_id = ?", userID).Count(&count).Error
+	return
+}
+
+func (r ReportRepository) CheckGroup(ctx context.Context, userID, groupID string) (pass bool, err error) {
+	var count int64
+	if err = r.client.Model(ReportGroupModel{}).Where("id = ? AND user_id = ?", groupID, userID).
+		Count(&count).Error; err != nil {
+		return
+	}
+	if count >= 1 {
+		pass = true
+	}
 	return
 }
