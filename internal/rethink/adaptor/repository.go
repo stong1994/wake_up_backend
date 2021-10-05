@@ -32,6 +32,17 @@ func (g ReportGroupModel) TableName() string {
 	return "report_group"
 }
 
+type RethinkModule struct {
+	ID         string
+	ReportID   string
+	Content    string
+	CreateTime time.Time
+}
+
+func (r RethinkModule) TableName() string {
+	return "rethink"
+}
+
 type ReportRepository struct {
 	client *gorm.DB
 }

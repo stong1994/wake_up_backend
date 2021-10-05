@@ -44,8 +44,10 @@ func (r *Report) UpdateContent(content string) error {
 	return nil
 }
 
+type checkReportGroupFunc func(ctx context.Context, userID, groupID string) (bool, error)
+
 func NewReport(ctx context.Context, id, userID, groupID, content string,
-	checkGroup func(ctx context.Context, userID, groupID string) (bool, error)) (Report, error) {
+	checkGroup checkReportGroupFunc) (Report, error) {
 	if id == "" {
 		return Report{}, errors.New("id can not be empty")
 	}
@@ -59,7 +61,6 @@ func NewReport(ctx context.Context, id, userID, groupID, content string,
 		return Report{}, errors.New("content can not be empty")
 	}
 
-	// TODO 校验groupID是否存在
 	if checkGroup != nil {
 		pass, err := checkGroup(ctx, userID, groupID)
 		if err != nil {
