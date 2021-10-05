@@ -187,3 +187,42 @@ func (r ReportRepository) CheckGroup(ctx context.Context, userID, groupID string
 	}
 	return
 }
+
+func (r ReportRepository) FindReportGroups(ctx context.Context, userID string) (query.RespReportGroupList, error) {
+	var (
+		id     string
+		name   string
+		cnt    int
+		err    error
+		result query.RespReportGroupList
+	)
+
+	rawSql := `
+SELECT A.id, A.name, B.cnt
+FROM report_group A
+LEFT JOIN (
+	SELECT group_id, IFNULL(COUNT(1),0) AS cnt 
+	FROM report 
+	WHERE user_id = ?
+	GROUP BY group_id
+) B ON A.id = B.group_id
+WHERE A.user_id = ?
+ORDER BY create_time DESC;
+` // TODO opt WHERE
+	rows, err := r.client.Raw(rawSql, userID, userID).Rows()
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		if err = rows.Scan(&id, &name, &cnt); err != nil {
+			return nil, err
+		}
+		result = append(result, query.RespReportGroupItem{
+			GroupID: id,
+			Name:    name,
+			Count:   cnt,
+		})
+	}
+	return result, nil
+}

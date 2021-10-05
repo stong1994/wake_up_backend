@@ -76,3 +76,30 @@ func (h HttpServer) AddReportGroup(w http.ResponseWriter, r *http.Request) {
 	}
 	server.RenderResponse(w, r, nil)
 }
+
+func (h HttpServer) FindReportGroups(w http.ResponseWriter, r *http.Request) {
+	if err := sweb.ParseForm(r); err != nil {
+		httperr.BadRequest(err.Error(), err, w, r)
+		return
+	}
+	userID, _ := sweb.URLParamString(r, "user_id") // TODO context
+	data, err := h.app.Queries.ReportGroupList.Handle(r.Context(), userID)
+	// todo
+	if err != nil {
+		httperr.InternalError(err.Error(), err, w, r)
+		return
+	}
+	server.RenderResponse(w, r, groupListModel2Resp(data))
+}
+
+func groupListModel2Resp(list query.RespReportGroupList) ReportGroupList {
+	resp := make([]ReportGroupItem, len(list))
+	for i, v := range list {
+		resp[i] = ReportGroupItem{
+			GroupID: v.GroupID,
+			Name:    v.Name,
+			Count:   v.Count,
+		}
+	}
+	return resp
+}

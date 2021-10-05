@@ -4,18 +4,26 @@ import "time"
 
 type RespReportAllGroupList struct {
 	Total int64
-	List []RespReportAllGroupItem
+	List  []RespReportAllGroupItem
 }
 
 type RespReportAllGroupItem struct {
-	GroupID string
+	GroupID   string
 	GroupName string
-	List []RespReportSingleTypeItem
+	List      []RespReportSingleTypeItem
 }
 
 type RespReportSingleTypeItem struct {
-	Content string
-	ReportTime time.Time
+	Content             string
+	ReportTime          time.Time
 	RethinkShortContent string
-	RethinkContentID string
+	RethinkContentID    string
+}
+
+type RespReportGroupList []RespReportGroupItem
+
+type RespReportGroupItem struct {
+	GroupID string
+	Name    string
+	Count   int
 }

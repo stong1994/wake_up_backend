@@ -17,6 +17,7 @@ type Commands struct {
 
 type Queries struct {
 	ReportAllTypeList query.ReportAllGroupListHandler
+	ReportGroupList   query.ReportGroupListHandler
 }
 
 func NewApplication(commands Commands, queries Queries) Application {

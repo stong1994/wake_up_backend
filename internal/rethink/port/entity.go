@@ -12,3 +12,11 @@ type EntityCreateReportGroup struct {
 	UserID  string `json:"user_id"`
 	Name    string `json:"name"`
 }
+
+type ReportGroupList []ReportGroupItem
+
+type ReportGroupItem struct {
+	GroupID string `json:"group_id"`
+	Name    string `json:"name"`
+	Count   int    `json:"count"`
+}
