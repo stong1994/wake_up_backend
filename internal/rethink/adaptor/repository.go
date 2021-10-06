@@ -198,10 +198,10 @@ func (r ReportRepository) FindReportGroups(ctx context.Context, userID string) (
 	)
 
 	rawSql := `
-SELECT A.id, A.name, B.cnt
+SELECT A.id, A.name, IFNULL(B.cnt,0) as cnt
 FROM report_group A
 LEFT JOIN (
-	SELECT group_id, IFNULL(COUNT(1),0) AS cnt 
+	SELECT group_id, COUNT(1) AS cnt 
 	FROM report 
 	WHERE user_id = ?
 	GROUP BY group_id
