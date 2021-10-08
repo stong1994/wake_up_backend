@@ -10,6 +10,7 @@ type ServerInterface interface {
 	AddReport(w http.ResponseWriter, r *http.Request)
 	AddReportGroup(w http.ResponseWriter, r *http.Request)
 	FindReportGroups(w http.ResponseWriter, r *http.Request)
+	FindAllReport(w http.ResponseWriter, r *http.Request)
 }
 
 // Handler creates http.Handler with routing matching OpenAPI spec.
@@ -26,5 +27,6 @@ func HandlerFromMux(si ServerInterface, router chi.Router) http.Handler {
 	router.Get("/report/list", si.FindAllReportWithGroup)
 	router.Post("/report/group", si.AddReportGroup)
 	router.Get("/report/group/list", si.FindReportGroups)
+	router.Get("/report/all", si.FindAllReport)
 	return router
 }

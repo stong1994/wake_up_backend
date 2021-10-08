@@ -226,3 +226,41 @@ ORDER BY create_time DESC;
 	}
 	return result, nil
 }
+
+func (r ReportRepository) FindAllReport(ctx context.Context, userID string, pageNo, pageSize int) ([]query.AllReport, error) {
+	var (
+		id         string
+		content    string
+		createTime time.Time
+		groupID    string
+		groupName  string
+		err        error
+		result     []query.AllReport
+	)
+
+	rawSql := `
+SELECT A.id, A.content, A.create_time, A.group_id, B.name AS group_name
+FROM report A LEFT JOIN report_group B ON A.group_id = B.id
+WHERE A.user_id = ?
+ORDER BY A.create_time DESC
+LIMIT ? OFFSET ?;
+` // TODO opt WHERE
+	rows, err := r.client.Raw(rawSql, userID, pageSize, (pageNo-1)*pageSize).Rows()
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		if err = rows.Scan(&id, &content, &createTime, &groupID, &groupName); err != nil {
+			return nil, err
+		}
+		result = append(result, query.AllReport{
+			ID:         id,
+			GroupID:    groupID,
+			Content:    content,
+			ReportTime: createTime,
+			GroupName:  groupName,
+		})
+	}
+	return result, nil
+}

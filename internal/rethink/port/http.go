@@ -103,3 +103,35 @@ func groupListModel2Resp(list query.RespReportGroupList) ReportGroupList {
 	}
 	return resp
 }
+
+func (h HttpServer) FindAllReport(w http.ResponseWriter, r *http.Request) {
+	if err := sweb.ParseForm(r); err != nil {
+		httperr.BadRequest(err.Error(), err, w, r)
+		return
+	}
+	userID, _ := sweb.URLParamString(r, "user_id")  // TODO context
+	pageSize, _ := sweb.URLParamInt(r, "page_size") // TODO context
+	pageNo, _ := sweb.URLParamInt(r, "page_no")     // TODO context
+	data, err := h.app.Queries.AllReport.Handle(r.Context(), userID, pageNo, pageSize)
+	// todo
+	if err != nil {
+		httperr.InternalError(err.Error(), err, w, r)
+		return
+	}
+	server.RenderResponse(w, r, allReportModel2Resp(data))
+}
+
+func allReportModel2Resp(list []query.AllReport) []AllReport {
+	resp := make([]AllReport, len(list))
+	for i, v := range list {
+		resp[i] = AllReport{
+			ID:         v.ID,
+			Content:    v.Content,
+			ReportTime: v.ReportTime.Unix(),
+
+			GroupID:   v.GroupID,
+			GroupName: v.GroupName,
+		}
+	}
+	return resp
+}

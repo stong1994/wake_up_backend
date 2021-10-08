@@ -27,3 +27,11 @@ type RespReportGroupItem struct {
 	Name    string
 	Count   int
 }
+
+type AllReport struct {
+	ID         string
+	Content    string
+	ReportTime time.Time
+	GroupID    string
+	GroupName  string
+}
