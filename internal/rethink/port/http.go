@@ -26,10 +26,8 @@ func (h HttpServer) AddReport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	err := h.app.Commands.AddReport.Handle(r.Context(), command.AddReport{
-		ReportID: data.ReportID,
-		GroupID:  data.GroupID,
-		Content:  data.Content,
-		UserID:   data.UserID,
+		GroupID: data.GroupID,
+		UserID:  data.UserID,
 	})
 	if err != nil {
 		httperr.InternalError(err.Error(), err, w, r)

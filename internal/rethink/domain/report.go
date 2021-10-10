@@ -3,6 +3,7 @@ package domain
 import (
 	"context"
 	"errors"
+	"github.com/stong1994/kit_golang/sstr"
 	"time"
 )
 
@@ -46,19 +47,13 @@ func (r *Report) UpdateContent(content string) error {
 
 type checkReportGroupFunc func(ctx context.Context, userID, groupID string) (bool, error)
 
-func NewReport(ctx context.Context, id, userID, groupID, content string,
+func NewReport(ctx context.Context, userID, groupID string,
 	checkGroup checkReportGroupFunc) (Report, error) {
-	if id == "" {
-		return Report{}, errors.New("id can not be empty")
-	}
 	if userID == "" {
 		return Report{}, errors.New("user id can not be empty")
 	}
 	if groupID == "" {
 		return Report{}, errors.New("group id can not be empty")
-	}
-	if content == "" {
-		return Report{}, errors.New("content can not be empty")
 	}
 
 	if checkGroup != nil {
@@ -72,19 +67,9 @@ func NewReport(ctx context.Context, id, userID, groupID, content string,
 	}
 
 	return Report{
-		id:      id,
+		id:      sstr.UUIDHex(),
 		userID:  userID,
 		groupID: groupID,
-		content: content,
 		time:    time.Now(),
 	}, nil
-}
-
-func UnmarshalFromDatabase(id, userID, groupID, content string, time time.Time) (Report, error) {
-	report, err := NewReport(context.TODO(), id, userID, groupID, content, nil)
-	if err != nil {
-		return Report{}, err
-	}
-	report.time = time
-	return report, nil
 }
