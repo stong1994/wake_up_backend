@@ -3,14 +3,14 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/cors"
+	"github.com/stong1994/kit_golang/slog"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
-
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
-	"github.com/go-chi/cors"
 )
 
 func RunHTTPServer(port int, createHandler func(router chi.Router) http.Handler) {
@@ -33,11 +33,11 @@ func RunHTTPServerOnAddr(addr string, createHandler func(router chi.Router) http
 func setMiddlewares(router *chi.Mux) {
 	router.Use(middleware.RequestID)
 	router.Use(middleware.RealIP)
-	//router.Use(logs.NewStructuredLogger(logrus.StandardLogger()))
+	router.Use(slog.NewStructuredLogger())
 	router.Use(middleware.Recoverer)
 
 	addCorsMiddleware(router)
-	//addAuthMiddleware(router)
+	addAuthMiddleware(router)
 
 	router.Use(
 		middleware.SetHeader("X-Content-Type-Options", "nosniff"),
@@ -46,30 +46,30 @@ func setMiddlewares(router *chi.Mux) {
 	router.Use(middleware.NoCache)
 }
 
-//func addAuthMiddleware(router *chi.Mux) {
-//	if mockAuth, _ := strconv.ParseBool(os.Getenv("MOCK_AUTH")); mockAuth {
-//		router.Use(auth.HttpMockMiddleware)
-//		return
-//	}
-//
-//	var opts []option.ClientOption
-//	if file := os.Getenv("SERVICE_ACCOUNT_FILE"); file != "" {
-//		opts = append(opts, option.WithCredentialsFile(file))
-//	}
-//
-//	config := &firebase.Config{ProjectID: os.Getenv("GCP_PROJECT")}
-//	firebaseApp, err := firebase.NewApp(context.Background(), config, opts...)
-//	if err != nil {
-//		logrus.Fatalf("error initializing app: %v\n", err)
-//	}
-//
-//	authClient, err := firebaseApp.Auth(context.Background())
-//	if err != nil {
-//		logrus.WithError(err).Fatal("Unable to create firebase Auth client")
-//	}
-//
-//	router.Use(auth.FirebaseHttpMiddleware{authClient}.Middleware)
-//}
+func addAuthMiddleware(router *chi.Mux) {
+	//if mockAuth, _ := strconv.ParseBool(os.Getenv("MOCK_AUTH")); mockAuth {
+	//	router.Use(auth.HttpMockMiddleware)
+	//	return
+	//}
+
+	//var opts []option.ClientOption
+	//if file := os.Getenv("SERVICE_ACCOUNT_FILE"); file != "" {
+	//	opts = append(opts, option.WithCredentialsFile(file))
+	//}
+	//
+	//config := &firebase.Config{ProjectID: os.Getenv("GCP_PROJECT")}
+	//firebaseApp, err := firebase.NewApp(context.Background(), config, opts...)
+	//if err != nil {
+	//	logrus.Fatalf("error initializing app: %v\n", err)
+	//}
+
+	//authClient, err := firebaseApp.Auth(context.Background())
+	//if err != nil {
+	//	logrus.WithError(err).Fatal("Unable to create firebase Auth client")
+	//}
+
+	//router.Use(auth.FirebaseHttpMiddleware{authClient}.Middleware)
+}
 
 func addCorsMiddleware(router *chi.Mux) {
 	allowedOrigins := strings.Split(os.Getenv("CORS_ALLOWED_ORIGINS"), ";")
