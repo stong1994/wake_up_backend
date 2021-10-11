@@ -19,7 +19,7 @@ func NewAddReportHandler(repo domain.IRepository) AddReportHandler {
 }
 
 func (h AddReportHandler) Handle(ctx context.Context, cmd AddReport) error {
-	report, err := domain.NewReport(ctx, cmd.GroupID, cmd.UserID, h.repo.CheckGroup)
+	report, err := domain.NewReport(ctx, cmd.UserID, cmd.GroupID, h.repo.CheckGroup)
 	if err != nil {
 		return err
 	}
