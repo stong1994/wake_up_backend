@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/stong1994/kit_golang/sweb"
 	"net/http"
+	"wake_up_backend/internal/common/auth"
 	"wake_up_backend/internal/common/server"
 	"wake_up_backend/internal/common/server/httperr"
 	"wake_up_backend/internal/rethink/app"
@@ -25,9 +26,16 @@ func (h HttpServer) AddReport(w http.ResponseWriter, r *http.Request) {
 		httperr.BadRequest(err.Error(), err, w, r)
 		return
 	}
-	err := h.app.Commands.AddReport.Handle(r.Context(), command.AddReport{
+
+	user, err := auth.UserFromCtx(r.Context())
+	if err != nil {
+		httperr.RespondWithSlugError(err, w, r)
+		return
+	}
+
+	err = h.app.Commands.AddReport.Handle(r.Context(), command.AddReport{
 		GroupID: data.GroupID,
-		UserID:  data.UserID,
+		UserID:  user.ID,
 	})
 	if err != nil {
 		httperr.InternalError(err.Error(), err, w, r)
@@ -43,11 +51,17 @@ func (h HttpServer) FindAllReportWithGroup(w http.ResponseWriter, r *http.Reques
 	}
 	pageSize, _ := sweb.URLParamInt(r, "page_size")
 	pageNo, _ := sweb.URLParamInt(r, "page_no")
-	userID, _ := sweb.URLParamString(r, "user_id") // TODO context
+
+	user, err := auth.UserFromCtx(r.Context())
+	if err != nil {
+		httperr.RespondWithSlugError(err, w, r)
+		return
+	}
+
 	data, err := h.app.Queries.ReportAllTypeList.Handle(r.Context(), query.ReportAllTypeList{
 		PageNum:  pageNo,
 		PageSize: pageSize,
-		UserID:   userID,
+		UserID:   user.ID,
 	})
 	// todo
 	if err != nil {
@@ -63,10 +77,17 @@ func (h HttpServer) AddReportGroup(w http.ResponseWriter, r *http.Request) {
 		httperr.BadRequest(err.Error(), err, w, r)
 		return
 	}
-	err := h.app.Commands.AddReportGroup.Handle(r.Context(), command.AddReportGroup{
+
+	user, err := auth.UserFromCtx(r.Context())
+	if err != nil {
+		httperr.RespondWithSlugError(err, w, r)
+		return
+	}
+
+	err = h.app.Commands.AddReportGroup.Handle(r.Context(), command.AddReportGroup{
 		ID:     data.GroupID,
 		Name:   data.Name,
-		UserID: data.UserID,
+		UserID: user.ID,
 	})
 	if err != nil {
 		httperr.InternalError(err.Error(), err, w, r)
@@ -76,13 +97,12 @@ func (h HttpServer) AddReportGroup(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h HttpServer) FindReportGroups(w http.ResponseWriter, r *http.Request) {
-	if err := sweb.ParseForm(r); err != nil {
-		httperr.BadRequest(err.Error(), err, w, r)
+	user, err := auth.UserFromCtx(r.Context())
+	if err != nil {
+		httperr.RespondWithSlugError(err, w, r)
 		return
 	}
-	userID, _ := sweb.URLParamString(r, "user_id") // TODO context
-	data, err := h.app.Queries.ReportGroupList.Handle(r.Context(), userID)
-	// todo
+	data, err := h.app.Queries.ReportGroupList.Handle(r.Context(), user.ID)
 	if err != nil {
 		httperr.InternalError(err.Error(), err, w, r)
 		return
@@ -107,11 +127,14 @@ func (h HttpServer) FindAllReport(w http.ResponseWriter, r *http.Request) {
 		httperr.BadRequest(err.Error(), err, w, r)
 		return
 	}
-	userID, _ := sweb.URLParamString(r, "user_id")  // TODO context
-	pageSize, _ := sweb.URLParamInt(r, "page_size") // TODO context
-	pageNo, _ := sweb.URLParamInt(r, "page_no")     // TODO context
-	data, err := h.app.Queries.AllReport.Handle(r.Context(), userID, pageNo, pageSize)
-	// todo
+	pageSize, _ := sweb.URLParamInt(r, "page_size")
+	pageNo, _ := sweb.URLParamInt(r, "page_no")
+	user, err := auth.UserFromCtx(r.Context())
+	if err != nil {
+		httperr.RespondWithSlugError(err, w, r)
+		return
+	}
+	data, err := h.app.Queries.AllReport.Handle(r.Context(), user.ID, pageNo, pageSize)
 	if err != nil {
 		httperr.InternalError(err.Error(), err, w, r)
 		return

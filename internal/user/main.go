@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/go-chi/chi"
 	"net/http"
+	"os"
 	"wake_up_backend/internal/common/logs"
 	"wake_up_backend/internal/common/server"
 	"wake_up_backend/internal/user/port"
@@ -11,6 +12,9 @@ import (
 )
 
 func main() {
+	// 模拟环境变量，用于禁止token鉴权
+	_ = os.Setenv("DISABLE_AUTH", "true")
+
 	ctx := context.Background()
 
 	logs.Init()

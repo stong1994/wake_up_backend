@@ -11,6 +11,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"wake_up_backend/internal/common/auth"
 )
 
 func RunHTTPServer(port int, createHandler func(router chi.Router) http.Handler) {
@@ -25,7 +26,7 @@ func RunHTTPServerOnAddr(addr string, createHandler func(router chi.Router) http
 	// we are mounting all APIs under /api path
 	rootRouter.Mount("/api", createHandler(apiRouter))
 
-	fmt.Println("Starting HTTP server")
+	fmt.Println("Starting HTTP server, listing:", addr)
 
 	http.ListenAndServe(addr, rootRouter)
 }
@@ -40,35 +41,22 @@ func setMiddlewares(router *chi.Mux) {
 	addAuthMiddleware(router)
 
 	router.Use(
+		// Configuring your server to return the X-Content-Type-Options HTTP response header set to nosniff will
+		// instruct browsers that support MIME sniffing to use the server-provided Content-Type and not interpret
+		// the content as a different content type.
 		middleware.SetHeader("X-Content-Type-Options", "nosniff"),
+		// deny: The page cannot be displayed in a frame, regardless of the site attempting to do so.
 		middleware.SetHeader("X-Frame-Options", "deny"),
 	)
 	router.Use(middleware.NoCache)
 }
 
 func addAuthMiddleware(router *chi.Mux) {
-	//if mockAuth, _ := strconv.ParseBool(os.Getenv("MOCK_AUTH")); mockAuth {
-	//	router.Use(auth.HttpMockMiddleware)
-	//	return
-	//}
-
-	//var opts []option.ClientOption
-	//if file := os.Getenv("SERVICE_ACCOUNT_FILE"); file != "" {
-	//	opts = append(opts, option.WithCredentialsFile(file))
-	//}
-	//
-	//config := &firebase.Config{ProjectID: os.Getenv("GCP_PROJECT")}
-	//firebaseApp, err := firebase.NewApp(context.Background(), config, opts...)
-	//if err != nil {
-	//	logrus.Fatalf("error initializing app: %v\n", err)
-	//}
-
-	//authClient, err := firebaseApp.Auth(context.Background())
-	//if err != nil {
-	//	logrus.WithError(err).Fatal("Unable to create firebase Auth client")
-	//}
-
-	//router.Use(auth.FirebaseHttpMiddleware{authClient}.Middleware)
+	if disableAuth, _ := strconv.ParseBool(os.Getenv("DISABLE_AUTH")); disableAuth {
+		//router.Use(auth.HttpMockMiddleware)
+		return
+	}
+	router.Use(auth.HttpMiddleware{}.Middleware)
 }
 
 func addCorsMiddleware(router *chi.Mux) {

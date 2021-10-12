@@ -2,7 +2,6 @@ package port
 
 import (
 	"encoding/json"
-	"github.com/stong1994/kit_golang/sweb"
 	"net/http"
 	"wake_up_backend/internal/common/auth"
 	"wake_up_backend/internal/common/server"
@@ -18,27 +17,6 @@ func NewHttpServer(app app.Application) HttpServer {
 	return HttpServer{app}
 }
 
-func (h HttpServer) GetUser(w http.ResponseWriter, r *http.Request) {
-	_ = sweb.ParseForm(r)
-	account, _ := sweb.URLParamString(r, "account")
-	password, _ := sweb.URLParamString(r, "password")
-
-	user, err := h.app.Queries.GetUser.Handle(r.Context(), account, password)
-	if err != nil {
-		httperr.InternalError(err.Error(), err, w, r)
-		return
-	}
-	token, err := auth.GenToken(auth.TokenInfo{
-		UserID:      user.ID,
-		DisplayName: user.DisplayName,
-	})
-	if err != nil {
-		httperr.InternalError(err.Error(), err, w, r)
-		return
-	}
-	server.RenderResponse(w, r, token)
-}
-
 func (h HttpServer) Login(w http.ResponseWriter, r *http.Request) {
 	var data LoginInfo
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
@@ -51,10 +29,7 @@ func (h HttpServer) Login(w http.ResponseWriter, r *http.Request) {
 		httperr.InternalError(err.Error(), err, w, r)
 		return
 	}
-	token, err := auth.GenToken(auth.TokenInfo{
-		UserID:      user.ID,
-		DisplayName: user.DisplayName,
-	})
+	token, err := auth.GenToken(auth.NewTokenInfo(user.ID, user.DisplayName))
 	if err != nil {
 		httperr.InternalError(err.Error(), err, w, r)
 		return
