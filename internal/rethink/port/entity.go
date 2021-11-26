@@ -5,9 +5,8 @@ type EntityCreateReport struct {
 }
 
 type EntityCreateReportGroup struct {
-	GroupID string `json:"group_id"`
-	UserID  string `json:"user_id"`
-	Name    string `json:"name"`
+	UserID string `json:"user_id"`
+	Name   string `json:"name"`
 }
 
 type ReportGroupList []ReportGroupItem

@@ -23,7 +23,7 @@ func (h AddReportHandler) Handle(ctx context.Context, cmd AddReport) error {
 	if err != nil {
 		return err
 	}
-	if err = h.repo.AddReport(ctx, report); err != nil {
+	if _, err = h.repo.AddReport(ctx, report); err != nil {
 		return err
 	}
 	return nil

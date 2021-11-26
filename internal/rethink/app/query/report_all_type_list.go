@@ -19,9 +19,9 @@ func NewReportAllGroupListHandler(readModel ReportAllGroupListReadModel) ReportA
 }
 
 type ReportAllGroupListReadModel interface {
-	FindReportWithAllGroup(ctx context.Context, userID string, pageNo, pageSize int) (RespReportAllGroupList, error)
+	FindUserReports(ctx context.Context, userID string, pageNo, pageSize int) (RespReportAllGroupList, error)
 }
 
 func (h ReportAllGroupListHandler) Handle(ctx context.Context, query ReportAllTypeList) (RespReportAllGroupList, error) {
-	return h.readModel.FindReportWithAllGroup(ctx, query.UserID, query.PageNum, query.PageSize)
+	return h.readModel.FindUserReports(ctx, query.UserID, query.PageNum, query.PageSize)
 }

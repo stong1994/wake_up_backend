@@ -28,10 +28,7 @@ func (r ReportGroup) CreateTime() time.Time {
 	return r.createTime
 }
 
-func NewReportGroup(id, userID, name string) (ReportGroup, error) {
-	if id == "" {
-		return ReportGroup{}, errors.New("id can not be empty")
-	}
+func NewReportGroup(userID, name string) (ReportGroup, error) {
 	if userID == "" {
 		return ReportGroup{}, errors.New("user id can not be empty")
 	}
@@ -40,7 +37,6 @@ func NewReportGroup(id, userID, name string) (ReportGroup, error) {
 	}
 
 	return ReportGroup{
-		id:         id,
 		userID:     userID,
 		name:       name,
 		createTime: time.Now(),

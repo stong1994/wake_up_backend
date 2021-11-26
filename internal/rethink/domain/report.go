@@ -3,7 +3,6 @@ package domain
 import (
 	"context"
 	"errors"
-	"github.com/stong1994/kit_golang/sstr"
 	"time"
 )
 
@@ -67,7 +66,6 @@ func NewReport(ctx context.Context, userID, groupID string,
 	}
 
 	return Report{
-		id:      sstr.UUIDHex(),
 		userID:  userID,
 		groupID: groupID,
 		time:    time.Now(),

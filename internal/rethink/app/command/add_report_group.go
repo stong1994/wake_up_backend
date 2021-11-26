@@ -6,7 +6,6 @@ import (
 )
 
 type AddReportGroup struct {
-	ID     string
 	UserID string
 	Name   string
 }
@@ -20,11 +19,11 @@ func NewAddReportGroupHandler(repo domain.IRepository) AddReportGroupHandler {
 }
 
 func (h AddReportGroupHandler) Handle(ctx context.Context, cmd AddReportGroup) error {
-	group, err := domain.NewReportGroup(cmd.ID, cmd.UserID, cmd.Name)
+	group, err := domain.NewReportGroup(cmd.UserID, cmd.Name)
 	if err != nil {
 		return err
 	}
-	if err = h.repo.AddReportGroup(ctx, group); err != nil {
+	if _, err = h.repo.AddReportGroup(ctx, group); err != nil {
 		return err
 	}
 	return nil

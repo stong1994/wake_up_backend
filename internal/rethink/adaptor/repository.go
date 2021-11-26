@@ -3,6 +3,8 @@ package adaptor
 import (
 	"context"
 	"errors"
+	"github.com/stong1994/kit_golang/sstr"
+	"go.mongodb.org/mongo-driver/mongo"
 	"gorm.io/gorm"
 	"time"
 	"wake_up_backend/internal/rethink/app/query"
@@ -47,13 +49,14 @@ type ReportRepository struct {
 	client *gorm.DB
 }
 
-func NewReportRepository(dbClient *gorm.DB) ReportRepository {
-	return ReportRepository{client: dbClient}
+func NewReportRepository(dbClient *mongo.Database) RethinkRepo {
+	return RethinkRepo{client: dbClient}
 }
 
-func (r ReportRepository) AddReport(ctx context.Context, report domain.Report) error {
-	return r.client.Create(&ReportModel{
-		ID:         report.ID(),
+func (r ReportRepository) AddReport(ctx context.Context, report domain.Report) (string, error) {
+	id := sstr.UUIDHex()
+	return id, r.client.Create(&ReportModel{
+		ID:         id,
 		GroupID:    report.GroupID(),
 		UserID:     report.UserID(),
 		CreateTime: report.Time(),
@@ -61,9 +64,10 @@ func (r ReportRepository) AddReport(ctx context.Context, report domain.Report) e
 	}).Error
 }
 
-func (r ReportRepository) AddReportGroup(ctx context.Context, reportGroup domain.ReportGroup) error {
-	return r.client.Create(&ReportGroupModel{
-		ID:         reportGroup.ID(),
+func (r ReportRepository) AddReportGroup(ctx context.Context, reportGroup domain.ReportGroup) (string, error) {
+	id := sstr.UUIDHex()
+	return id, r.client.Create(&ReportGroupModel{
+		ID:         id,
 		UserID:     reportGroup.UserID(),
 		CreateTime: reportGroup.CreateTime(),
 		Name:       reportGroup.Name(),
@@ -80,7 +84,7 @@ type allTypeListReceiver struct {
 	GroupCreateTime time.Time `gorm:"column:group_create_time"`
 }
 
-func (r ReportRepository) FindReportWithAllGroup(ctx context.Context, userID string, pageNo, pageSize int) (query.RespReportAllGroupList, error) {
+func (r ReportRepository) FindUserReports(ctx context.Context, userID string, pageNo, pageSize int) (query.RespReportAllGroupList, error) {
 	offset := (pageNo - 1) * pageSize
 	if pageSize < 0 {
 		return query.RespReportAllGroupList{}, errors.New("page_size must be over than 0")

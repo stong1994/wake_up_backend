@@ -85,7 +85,6 @@ func (h HttpServer) AddReportGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = h.app.Commands.AddReportGroup.Handle(r.Context(), command.AddReportGroup{
-		ID:     data.GroupID,
 		Name:   data.Name,
 		UserID: user.ID,
 	})
