@@ -150,8 +150,8 @@ func (r RethinkRepo) getUserGroupRethinkMap(ctx context.Context, userID string) 
 }
 
 type reportWithGroupInfo struct {
-	RethinkModel
-	Group ReportGroupModelV2 `json:"group_info"`
+	RethinkModel `bson:"inline"`    // mongo的decoder需要设置inline tag才能将内嵌的field解析出来
+	Group        ReportGroupModelV2 `bson:"group_info"`
 }
 
 // todo sort
@@ -176,26 +176,25 @@ func (r RethinkRepo) FindUserReports(ctx context.Context, userID string, pageNo,
 		}},
 	}
 	unwindStage := bson.D{
-		{"path", "$group_info"},
-		{"preserveNullAndEmptyArrays", true},
-	}
-	pageStage := bson.D{
 		{
-			"$skip", (pageNo - 1) * pageSize,
+			"$unwind", bson.M{
+				"path":                       "$group_info",
+				"preserveNullAndEmptyArrays": true,
+			},
 		},
+	}
+	limitStage := bson.D{
 		{
 			"$limit", pageSize,
 		},
 	}
-	//projectStage := bson.M{
-	//	"$project": bson.D{
-	//		{"_id", 1},
-	//		{"age", 1},
-	//		{"name", 1},
-	//		//{"weight", 0}, 除_id外，不能显示定义不显示的字段，默认是0
-	//	},
-	//}
-	pip := mongo.Pipeline{matchStage, lookupStage, unwindStage, pageStage}
+	skipStage := bson.D{
+		{
+			"$skip", (pageNo - 1) * pageSize,
+		},
+	}
+
+	pip := mongo.Pipeline{matchStage, lookupStage, unwindStage, limitStage, skipStage}
 	cursor, err := r.client.Collection(RethinkModel{}.CollectionName()).Aggregate(ctx, pip)
 	if err != nil {
 		return result, err

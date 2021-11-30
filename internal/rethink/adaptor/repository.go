@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"github.com/stong1994/kit_golang/sstr"
-	"go.mongodb.org/mongo-driver/mongo"
 	"gorm.io/gorm"
 	"time"
 	"wake_up_backend/internal/rethink/app/query"
@@ -49,8 +48,8 @@ type ReportRepository struct {
 	client *gorm.DB
 }
 
-func NewReportRepository(dbClient *mongo.Database) RethinkRepo {
-	return RethinkRepo{client: dbClient}
+func NewReportRepository(dbClient *gorm.DB) ReportRepository {
+	return ReportRepository{client: dbClient}
 }
 
 func (r ReportRepository) AddReport(ctx context.Context, report domain.Report) (string, error) {

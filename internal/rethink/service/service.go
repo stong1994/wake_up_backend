@@ -23,7 +23,7 @@ func NewApplication(ctx context.Context) (app.Application, func()) {
 	if err != nil {
 		panic(err)
 	}
-	repoAdaptor := adaptor.NewReportRepository(dbEngine)
+	repoAdaptor := adaptor.NewRethinkRepo(dbEngine)
 	return app.Application{
 		Commands: app.Commands{
 			AddReport:      command.NewAddReportHandler(repoAdaptor),
