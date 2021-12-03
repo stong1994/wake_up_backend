@@ -38,7 +38,11 @@ func GenToken(data TokenInfo) (string, error) {
 	})
 
 	// Sign and get the complete encoded token as a string using the secret
-	return token.SignedString(hmacSampleSecret)
+	tokenStr, err := token.SignedString(hmacSampleSecret)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s.%s", "Bearer", tokenStr), nil
 }
 
 func DecodeToken(token string) (TokenInfo, error) {

@@ -93,7 +93,7 @@ func RenderResponse(w http.ResponseWriter, r *http.Request, data interface{}) {
 		panic(err)
 	}
 
-	w.Header().Set("ReportContent-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
 	if _, err = w.Write(bts); err != nil {
 		panic(err)
 	}
