@@ -11,6 +11,7 @@ type ServerInterface interface {
 	AddReportGroup(w http.ResponseWriter, r *http.Request)
 	FindReportGroups(w http.ResponseWriter, r *http.Request)
 	FindAllReport(w http.ResponseWriter, r *http.Request)
+	CompleteRethink(w http.ResponseWriter, r *http.Request)
 }
 
 // Handler creates http.Handler with routing matching OpenAPI spec.
@@ -28,5 +29,6 @@ func HandlerFromMux(si ServerInterface, router chi.Router) http.Handler {
 	router.Post("/report/group", si.AddReportGroup)
 	router.Get("/report/group/list", si.FindReportGroups)
 	router.Get("/report/all", si.FindAllReport)
+	router.Post("/rethink/complete", si.CompleteRethink)
 	return router
 }

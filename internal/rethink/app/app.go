@@ -11,8 +11,9 @@ type Application struct {
 }
 
 type Commands struct {
-	AddReport      command.AddReportHandler
-	AddReportGroup command.AddReportGroupHandler
+	AddReport       command.AddReportHandler
+	AddReportGroup  command.AddReportGroupHandler
+	CompleteRethink command.CompleteRethinkHandler
 }
 
 type Queries struct {

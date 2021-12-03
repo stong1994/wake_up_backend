@@ -41,10 +41,10 @@ func setMiddlewares(router *chi.Mux) {
 	addAuthMiddleware(router)
 
 	router.Use(
-		// Configuring your server to return the X-Content-Type-Options HTTP response header set to nosniff will
-		// instruct browsers that support MIME sniffing to use the server-provided Content-Type and not interpret
+		// Configuring your server to return the X-ReportContent-Type-Options HTTP response header set to nosniff will
+		// instruct browsers that support MIME sniffing to use the server-provided ReportContent-Type and not interpret
 		// the content as a different content type.
-		middleware.SetHeader("X-Content-Type-Options", "nosniff"),
+		middleware.SetHeader("X-ReportContent-Type-Options", "nosniff"),
 		// deny: The page cannot be displayed in a frame, regardless of the site attempting to do so.
 		middleware.SetHeader("X-Frame-Options", "deny"),
 	)
@@ -68,7 +68,7 @@ func addCorsMiddleware(router *chi.Mux) {
 	corsMiddleware := cors.New(cors.Options{
 		AllowedOrigins:   allowedOrigins,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "ReportContent-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
 		MaxAge:           300,
@@ -93,7 +93,7 @@ func RenderResponse(w http.ResponseWriter, r *http.Request, data interface{}) {
 		panic(err)
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("ReportContent-Type", "application/json")
 	if _, err = w.Write(bts); err != nil {
 		panic(err)
 	}

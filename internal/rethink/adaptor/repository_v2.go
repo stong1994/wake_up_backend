@@ -54,6 +54,47 @@ func (r RethinkRepo) AddReport(ctx context.Context, report domain.Report) (strin
 	return resp.InsertedID.(primitive.ObjectID).String(), nil
 }
 
+func (r RethinkRepo) FindRethinkByID(ctx context.Context, rethinkID string) (domain.Rethink, error) {
+	id, err := getObjID(rethinkID)
+	if err != nil {
+		return domain.Rethink{}, err
+	}
+	cond := bson.M{
+		"_id": id,
+	}
+	var model RethinkModel
+	if err = r.client.Collection(RethinkModel{}.CollectionName()).FindOne(ctx, cond).Decode(&model); err != nil {
+		return domain.Rethink{}, err
+	}
+	return domain.UnmarshalRethinkFromDB(model.ID.Hex(), model.UserID, model.ReportGroupID.Hex(), model.Content,
+		model.RethinkContent, model.ReportTime.Time(), model.RecordTime.Time(), model.RethinkTime.Time()), nil
+}
+
+func (r RethinkRepo) SaveRethink(ctx context.Context, rethink domain.Rethink) error {
+	id, err := getObjID(rethink.ID())
+	if err != nil {
+		return err
+	}
+	groupID, err := getObjID(rethink.GroupID())
+	if err != nil {
+		return err
+	}
+	cond := bson.M{
+		"_id": id,
+	}
+	_, err = r.client.Collection(RethinkModel{}.CollectionName()).ReplaceOne(ctx, cond, &RethinkModel{
+		//ID:             id,
+		UserID:         rethink.UserID(),
+		ReportTime:     primitive.NewDateTimeFromTime(rethink.ReportTime()),
+		ReportGroupID:  groupID,
+		Content:        rethink.Content(),
+		RecordTime:     primitive.NewDateTimeFromTime(rethink.RecordTime()),
+		RethinkContent: rethink.RethinkContent(),
+		RethinkTime:    primitive.NewDateTimeFromTime(rethink.RethinkTime()),
+	})
+	return err
+}
+
 type ReportGroupModelV2 struct {
 	ID         primitive.ObjectID `bson:"_id,omitempty"`
 	Name       string             `bson:"name"`
@@ -221,14 +262,16 @@ func convert2Reports(data []reportWithGroupInfo) []query.RespReportAllGroupItem 
 	for _, v := range data {
 		if _, exist := reportsMap[v.Group.ID.Hex()]; exist {
 			reportsMap[v.Group.ID.Hex()] = append(reportsMap[v.Group.ID.Hex()], query.RespReportSingleTypeItem{
-				Content:             v.Content,
+				RethinkID:           v.ID.Hex(),
+				ReportContent:       v.Content,
 				ReportTime:          v.ReportTime.Time(),
 				RethinkShortContent: v.RethinkContent,
 			})
 			continue
 		}
 		reportsMap[v.Group.ID.Hex()] = []query.RespReportSingleTypeItem{{
-			Content:             v.Content,
+			RethinkID:           v.ID.Hex(),
+			ReportContent:       v.Content,
 			ReportTime:          v.ReportTime.Time(),
 			RethinkShortContent: v.RethinkContent,
 		}}
@@ -272,6 +315,69 @@ func (r RethinkRepo) CheckGroup(ctx context.Context, userID, groupID string) (bo
 	}
 	vs, err := bytes.Values()
 	return len(vs) > 0, err
+}
+
+func (r RethinkRepo) FindAllReport(ctx context.Context, userID string, pageNo, pageSize int) ([]query.AllReport, error) {
+	matchStage := bson.D{
+		{"$match", bson.D{
+			{"user_id", userID},
+			{"content", bson.M{"$ne": ""}},
+		}},
+	}
+	lookupStage := bson.D{
+		{"$lookup", bson.M{
+			"from":         ReportGroupModelV2{}.CollectionName(),
+			"localField":   "report_group_id",
+			"foreignField": "_id",
+			"as":           "group_info",
+		}},
+	}
+	unwindStage := bson.D{
+		{
+			"$unwind", bson.M{
+				"path":                       "$group_info",
+				"preserveNullAndEmptyArrays": true,
+			},
+		},
+	}
+	limitStage := bson.D{
+		{
+			"$limit", pageSize,
+		},
+	}
+	skipStage := bson.D{
+		{
+			"$skip", (pageNo - 1) * pageSize,
+		},
+	}
+
+	pip := mongo.Pipeline{matchStage, lookupStage, unwindStage, limitStage, skipStage}
+	cursor, err := r.client.Collection(RethinkModel{}.CollectionName()).Aggregate(ctx, pip)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var rawData []reportWithGroupInfo
+	if err = cursor.All(ctx, &rawData); err != nil {
+		return nil, err
+	}
+
+	return convert2AllReport(rawData), nil
+}
+
+func convert2AllReport(data []reportWithGroupInfo) []query.AllReport {
+	result := make([]query.AllReport, len(data))
+	for i, v := range data {
+		result[i] = query.AllReport{
+			ID:         v.ID.Hex(),
+			Content:    v.Content,
+			ReportTime: v.ReportTime.Time(),
+			GroupID:    v.Group.ID.Hex(),
+			GroupName:  v.Group.Name,
+		}
+	}
+	return result
 }
 
 func getObjID(id string) (primitive.ObjectID, error) {

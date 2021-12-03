@@ -26,13 +26,14 @@ func NewApplication(ctx context.Context) (app.Application, func()) {
 	repoAdaptor := adaptor.NewRethinkRepo(dbEngine)
 	return app.Application{
 		Commands: app.Commands{
-			AddReport:      command.NewAddReportHandler(repoAdaptor),
-			AddReportGroup: command.NewAddReportGroupHandler(repoAdaptor),
+			AddReport:       command.NewAddReportHandler(repoAdaptor),
+			AddReportGroup:  command.NewAddReportGroupHandler(repoAdaptor),
+			CompleteRethink: command.NewCompleteRethinkHandler(repoAdaptor),
 		},
 		Queries: app.Queries{
 			ReportAllTypeList: query.NewReportAllGroupListHandler(repoAdaptor),
 			ReportGroupList:   query.NewReportGroupListHandler(repoAdaptor),
-			//AllReport:         query.NewAllReportHandler(repoAdaptor),
+			AllReport:         query.NewAllReportHandler(repoAdaptor),
 		},
 	}, func() {}
 }

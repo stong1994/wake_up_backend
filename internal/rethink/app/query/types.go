@@ -14,7 +14,8 @@ type RespReportAllGroupItem struct {
 }
 
 type RespReportSingleTypeItem struct {
-	Content             string
+	RethinkID           string
+	ReportContent       string
 	ReportTime          time.Time
 	RethinkShortContent string
 }

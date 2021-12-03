@@ -7,6 +7,7 @@ import (
 	"wake_up_backend/internal/common/logs"
 	"wake_up_backend/internal/common/server"
 	"wake_up_backend/internal/rethink/port"
+	http2 "wake_up_backend/internal/rethink/port/http"
 	"wake_up_backend/internal/rethink/service"
 )
 
@@ -19,6 +20,6 @@ func main() {
 	defer cleanup()
 
 	server.RunHTTPServer(8080, func(router chi.Router) http.Handler {
-		return port.HandlerFromMux(port.NewHttpServer(app), router)
+		return port.HandlerFromMux(http2.NewHttpServer(app), router)
 	})
 }

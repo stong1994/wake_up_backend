@@ -144,8 +144,8 @@ func (r ReportRepository) allTypeListToQuery(count int64, data []allTypeListRece
 	var subList []query.RespReportSingleTypeItem
 	for _, v := range data {
 		item := query.RespReportSingleTypeItem{
-			Content:    v.Content,
-			ReportTime: v.CreateTime,
+			ReportContent: v.Content,
+			ReportTime:    v.CreateTime,
 			//RethinkShortContent: "",
 			//RethinkContentID:    "",
 		}
